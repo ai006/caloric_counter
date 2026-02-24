@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Macro Zigzag Calculator</title>
+
+  <style>
+    :root{
+      --bg0:#0b0f19;
+      --bg1:#0f172a;
+      --card:#0b1224cc;
+      --card2:#0b1224aa;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --line:#23304a;
+      --good:#34d399;
+      --warn:#fb7185;
+      --accent:#60a5fa;
+      --accent2:#a78bfa;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(96,165,250,.22), transparent 55%),
+        radial-gradient(900px 600px at 85% 20%, rgba(167,139,250,.18), transparent 60%),
+        radial-gradient(900px 900px at 45% 95%, rgba(52,211,153,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+      padding: 28px 16px 60px;
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(24px, 3.2vw, 38px);
+      letter-spacing: -0.02em;
+      line-height:1.15;
+    }
+
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      max-width: 62ch;
+      line-height:1.45;
+      font-size: 14.5px;
+    }
+
+    .pillRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:flex-end;
+      padding-top: 6px;
+    }
+
+    .pill{
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      box-shadow: 0 10px 28px rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .pill b{ font-weight: 700; }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(96,165,250,.18);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.35fr .85fr;
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px){
+      header{ flex-direction:column; }
+      .pillRow{ justify-content:flex-start; }
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(900px 360px at 20% 0%, rgba(96,165,250,.10), transparent 55%);
+      pointer-events:none;
+    }
+
+    .cardInner{
+      position:relative;
+      padding: 18px;
+    }
+
+    .cardTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 10px;
+    }
+
+    .cardTitle h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .01em;
+      color: #f3f4f6;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .badge{
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+    }
+
+    .controls{
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 160px 1fr 86px;
+      align-items:center;
+      gap: 12px;
+      padding: 12px 12px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(8, 13, 26, .55);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 560px){
+      .row{ grid-template-columns: 1fr; gap: 10px; }
+      .valueBox{ justify-content:flex-start; }
+    }
+
+    .label{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .label span{
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #f3f4f6;
+    }
+
+    .label small{
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height:1.2;
+    }
+
+    .valueBox{
+      display:flex;
+      justify-content:flex-end;
+      align-items:baseline;
+      gap: 8px;
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+
+    .value{
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: .01em;
+    }
+
+    .unit{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input[type="range"]{
+      width:100%;
+      accent-color: var(--accent);
+      cursor:pointer;
+    }
+
+    .selectRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(8, 13, 26, .55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    select{
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      outline:none;
+      cursor:pointer;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+
+    .presets{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .btn{
+      border:none;
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 800;
+      color: #0b0f19;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 14px 30px rgba(96,165,250,.20);
+      transition: transform .08s ease, filter .08s ease;
+    }
+    .btn:active{ transform: translateY(1px); filter: brightness(.98); }
+
+    .btnGhost{
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 800;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      box-shadow: 0 14px 30px rgba(0,0,0,.22);
+      transition: transform .08s ease, filter .08s ease;
+    }
+    .btnGhost:active{ transform: translateY(1px); filter: brightness(.98); }
+
+    .stats{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .stat{
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(8, 13, 26, .52);
+      border-radius: 16px;
+      padding: 14px 14px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .stat .k{
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .stat .v{
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: .01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat .v small{
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .status{
+      margin-top: 12px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(8, 13, 26, .52);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      line-height:1.35;
+      font-size: 13px;
+    }
+
+    .statusGood{
+      color: var(--good);
+      font-weight: 900;
+    }
+    .statusWarn{
+      color: var(--warn);
+      font-weight: 900;
+    }
+
+    .footerNote{
+      color: var(--muted);
+      font-size: 12.5px;
+      margin-top: 12px;
+      line-height:1.45;
+    }
+
+    .miniTable{
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(8, 13, 26, .48);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .miniTableHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      color:#f3f4f6;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .miniRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      font-variant-numeric: tabular-nums;
+    }
+    .miniRow:last-child{ border-bottom:none; }
+
+    .miniRow .k{ color: var(--muted); font-size: 12px; }
+    .miniRow .v{ font-weight: 900; font-size: 13.5px; justify-self:end; }
+
+    .linkish{
+      color: #c7d2fe;
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(199,210,254,.45);
+    }
+    .linkish:hover{ border-bottom-color: rgba(199,210,254,.9); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Macro Zigzag Calculator</h1>
+        <p class="subtitle">
+          Pick a calorie target and adjust macros. Choose one macro to auto balance so your totals stay aligned.
+          Includes quick presets for your extreme zigzag days.
+        </p>
+      </div>
+
+      <div class="pillRow">
+        <div class="pill"><span class="dot"></span> Auto balance: <b id="autoLabel">Carbs</b></div>
+        <div class="pill">Total: <b id="totalLabel">0</b> kcal</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: CONTROLS -->
+      <section class="card">
+        <div class="cardInner">
+          <div class="cardTitle">
+            <h2>Controls</h2>
+            <span class="badge">Drag any slider</span>
+          </div>
+
+          <div class="selectRow">
+            <div class="label">
+              <span>Auto balance macro</span>
+              <small>Any change recalculates this macro to match calories</small>
+            </div>
+            <select id="autoMode" onchange="recalc('mode')">
+              <option value="carbs" selected>Carbs</option>
+              <option value="fat">Fat</option>
+              <option value="protein">Protein</option>
+            </select>
+          </div>
+
+          <div class="selectRow" style="margin-top:12px;">
+            <div class="label">
+              <span>Quick presets</span>
+              <small>Your extreme zigzag days</small>
+            </div>
+            <div class="presets">
+              <button class="btn" onclick="setPreset(1500)">Low day 1500</button>
+              <button class="btnGhost" onclick="setPreset(2358)">High day 2358</button>
+              <button class="btnGhost" onclick="resetDefaults()">Reset</button>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="row">
+              <div class="label">
+                <span>Calories</span>
+                <small>Set your daily target</small>
+              </div>
+              <input type="range" id="calories" min="900" max="3500" value="1500" step="10" oninput="recalc('calories')">
+              <div class="valueBox">
+                <div class="value" id="calVal">1500</div><div class="unit">kcal</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="label">
+                <span>Protein</span>
+                <small>4 kcal per gram</small>
+              </div>
+              <input type="range" id="protein" min="0" max="300" value="200" step="5" oninput="recalc('protein')">
+              <div class="valueBox">
+                <div class="value" id="proVal">200</div><div class="unit">g</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="label">
+                <span>Fat</span>
+                <small>9 kcal per gram</small>
+              </div>
+              <input type="range" id="fat" min="0" max="200" value="55" step="1" oninput="recalc('fat')">
+              <div class="valueBox">
+                <div class="value" id="fatVal">55</div><div class="unit">g</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="label">
+                <span>Carbs</span>
+                <small>4 kcal per gram</small>
+              </div>
+              <input type="range" id="carbs" min="0" max="600" value="100" step="5" oninput="recalc('carbs')">
+              <div class="valueBox">
+                <div class="value" id="carbVal">100</div><div class="unit">g</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status" id="statusBox"></div>
+
+          <div class="footerNote">
+            Tip: keep <b>Auto balance = Carbs</b> most of the time. If you want stricter carb control, switch auto balance to Fat.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: SUMMARY -->
+      <aside class="card">
+        <div class="cardInner">
+          <div class="cardTitle">
+            <h2>Summary</h2>
+            <span class="badge">Live totals</span>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="k">Protein calories</div>
+              <div class="v" id="pCals">0 <small>kcal</small></div>
+            </div>
+            <div class="stat">
+              <div class="k">Fat calories</div>
+              <div class="v" id="fCals">0 <small>kcal</small></div>
+            </div>
+            <div class="stat">
+              <div class="k">Carb calories</div>
+              <div class="v" id="cCals">0 <small>kcal</small></div>
+            </div>
+            <div class="stat">
+              <div class="k">Macro split</div>
+              <div class="v" id="split">0 <small>%</small></div>
+            </div>
+          </div>
+
+          <div class="miniTable">
+            <div class="miniTableHeader">
+              <div>Details</div>
+              <div style="color:var(--muted); font-weight:800; font-size:12px;">(P/C = 4, F = 9)</div>
+            </div>
+            <div class="miniRow">
+              <div class="k">Target calories</div>
+              <div class="v" id="targetOut">0</div>
+            </div>
+            <div class="miniRow">
+              <div class="k">Current total</div>
+              <div class="v" id="totalOut">0</div>
+            </div>
+            <div class="miniRow">
+              <div class="k">Difference</div>
+              <div class="v" id="diffOut">0</div>
+            </div>
+            <div class="miniRow">
+              <div class="k">Auto balanced macro</div>
+              <div class="v" id="autoOut">Carbs</div>
+            </div>
+          </div>
+
+          <p class="footerNote">
+            Want this embedded in GitHub Pages? Create a repo, add this as <code>index.html</code>,
+            then enable Pages under Settings → Pages. (You can rename the title and add your own favicon too.)
+          </p>
+          <p class="footerNote">
+            If you want, I can also generate a matching <a class="linkish" href="#" onclick="alert('Ask me for a README.md template and I will generate it'); return false;">README.md</a> for the repo.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    function clamp(x, lo, hi){ return Math.max(lo, Math.min(hi, x)); }
+
+    function getVals(){
+      return {
+        calories: parseInt(document.getElementById("calories").value, 10),
+        protein: parseInt(document.getElementById("protein").value, 10),
+        fat: parseInt(document.getElementById("fat").value, 10),
+        carbs: parseInt(document.getElementById("carbs").value, 10),
+        autoMode: document.getElementById("autoMode").value
+      };
+    }
+
+    function setSlider(id, v){
+      const el = document.getElementById(id);
+      el.value = v;
+    }
+
+    function caloriesFromMacros(p, f, c){
+      return (p * 4) + (f * 9) + (c * 4);
+    }
+
+    function niceAutoLabel(mode){
+      if(mode === "protein") return "Protein";
+      if(mode === "fat") return "Fat";
+      return "Carbs";
+    }
+
+    function updateUI(v, totals){
+      document.getElementById("calVal").textContent = v.calories;
+      document.getElementById("proVal").textContent = v.protein;
+      document.getElementById("fatVal").textContent = v.fat;
+      document.getElementById("carbVal").textContent = v.carbs;
+
+      document.getElementById("autoLabel").textContent = niceAutoLabel(v.autoMode);
+      document.getElementById("autoOut").textContent = niceAutoLabel(v.autoMode);
+
+      document.getElementById("pCals").innerHTML = `${totals.pCals} <small>kcal</small>`;
+      document.getElementById("fCals").innerHTML = `${totals.fCals} <small>kcal</small>`;
+      document.getElementById("cCals").innerHTML = `${totals.cCals} <small>kcal</small>`;
+
+      const total = totals.total;
+      document.getElementById("totalLabel").textContent = total;
+
+      document.getElementById("targetOut").textContent = v.calories + " kcal";
+      document.getElementById("totalOut").textContent = total + " kcal";
+
+      const diff = total - v.calories;
+      const diffStr = (diff === 0) ? "0 kcal" : (diff > 0 ? `+${diff} kcal` : `${diff} kcal`);
+      document.getElementById("diffOut").textContent = diffStr;
+
+      const pPct = total ? Math.round((totals.pCals / total) * 100) : 0;
+      const fPct = total ? Math.round((totals.fCals / total) * 100) : 0;
+      const cPct = total ? Math.round((totals.cCals / total) * 100) : 0;
+      document.getElementById("split").innerHTML = `${pPct}/${fPct}/${cPct} <small>P/F/C</small>`;
+    }
+
+    function setPreset(cal){
+      setSlider("calories", cal);
+      recalc("preset");
+    }
+
+    function resetDefaults(){
+      setSlider("autoMode", "carbs");
+      setSlider("calories", 1500);
+      setSlider("protein", 200);
+      setSlider("fat", 55);
+      setSlider("carbs", 100);
+      recalc("reset");
+    }
+
+    function recalc(changed){
+      let v = getVals();
+      const auto = v.autoMode;
+
+      let p = v.protein, f = v.fat, c = v.carbs;
+
+      // Solve for auto macro while holding the other two fixed.
+      // If we clamp due to slider min/max, we may not match exactly, so we show a warning.
+      if(auto === "carbs"){
+        let remaining = v.calories - (p * 4) - (f * 9);
+        let newC = remaining / 4;
+        newC = clamp(newC, 0, 600);
+        c = Math.round(newC / 5) * 5; // snap to 5g
+        c = clamp(c, 0, 600);
+        setSlider("carbs", c);
+      } else if(auto === "fat"){
+        let remaining = v.calories - (p * 4) - (c * 4);
+        let newF = remaining / 9;
+        newF = clamp(newF, 0, 200);
+        f = Math.round(newF); // 1g steps
+        setSlider("fat", f);
+      } else if(auto === "protein"){
+        let remaining = v.calories - (f * 9) - (c * 4);
+        let newP = remaining / 4;
+        newP = clamp(newP, 0, 300);
+        p = Math.round(newP / 5) * 5; // snap to 5g
+        p = clamp(p, 0, 300);
+        setSlider("protein", p);
+      }
+
+      // Re-read after auto adjustment
+      v = getVals();
+
+      const totals = {
+        pCals: v.protein * 4,
+        fCals: v.fat * 9,
+        cCals: v.carbs * 4
+      };
+      totals.total = totals.pCals + totals.fCals + totals.cCals;
+
+      updateUI(v, totals);
+
+      const diff = totals.total - v.calories;
+      const statusBox = document.getElementById("statusBox");
+
+      if(diff === 0){
+        statusBox.innerHTML = `<span class="statusGood">On target.</span> Auto balanced: <b>${niceAutoLabel(v.autoMode)}</b>`;
+      } else {
+        statusBox.innerHTML =
+          `<span class="statusWarn">Cannot match calories exactly.</span> The auto macro hit its min or max.
+           Try widening slider limits or adjusting the other macros. Current difference: <b>${diff > 0 ? "+" : ""}${diff}</b> kcal.`;
+      }
+    }
+
+    // Init
+    recalc("init");
+  </script>
+</body>
+</html>
